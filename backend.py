@@ -50,13 +50,12 @@ async def chat_endpoint(request: RequestState):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Improved server configuration
+
 if __name__ == "__main__":
     uvicorn.run(
-        app,
+        "backend:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
-        access_log=True,
-        timeout_keep_alive=30
+        reload=False,
+        workers=1
     )
