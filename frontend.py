@@ -22,7 +22,7 @@ allow_web_search = st.checkbox("Enable Web Search", value=True)
 user_query = st.text_area("Enter your query:", height=150, placeholder="Ask Anything!")
 
 
-API_URL = "https://OmniAgent.koyeb.app/chat"
+API_URL = "https://recent-jourdan-ustec-17c8d79f.koyeb.app/chat"
 if st.button("Ask Agent!"):
     if user_query.strip():
         payload = {
