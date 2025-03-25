@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List, Dict
 from fastapi import FastAPI, HTTPException
 from ai_agent import get_response_from_ai_agent
+import uvicorn
 
 class RequestState(BaseModel):
     model_name: str
@@ -12,15 +13,25 @@ class RequestState(BaseModel):
 
 app = FastAPI(title="LangGraph AI Agent")
 
+# Add root endpoint to prevent 404 errors
+@app.get("/")
+async def health_check():
+    return {
+        "status": "API is running", 
+        "endpoints": {
+            "chat": "/chat (POST)",
+            "docs": "/docs"
+        }
+    }
+
 ALLOWED_MODELS = {
     "Groq": ["llama3-70b-8192", "llama-3.3-70b-versatile"],
     "DeepSeek": ["deepseek/deepseek-r1-zero:free", "deepseek/deepseek-r1-distill-qwen-32b:free"],
-    "GoogleAI": ["gemini-2.0-pro-exp-02-05","gemini-1.5-flash"]  # Added GoogleAI models
+    "GoogleAI": ["gemini-2.0-pro-exp-02-05","gemini-1.5-flash"]
 }
 
 @app.post("/chat")
 async def chat_endpoint(request: RequestState):
-    # Validate request
     if request.model_provider not in ALLOWED_MODELS:
         raise HTTPException(status_code=400, detail="Invalid provider")
     
@@ -39,7 +50,13 @@ async def chat_endpoint(request: RequestState):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Improved server configuration
 if __name__ == "__main__":
-    import uvicorn  # Add this import at the top of your file
-    uvicorn.run("backend:app", host="0.0.0.0", port=8000)
-    
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        access_log=True,
+        timeout_keep_alive=30
+    )

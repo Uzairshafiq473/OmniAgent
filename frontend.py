@@ -9,20 +9,20 @@ st.write("Create and Interact with the AI Agents!")
 system_prompt = st.text_area("Define your AI Agent:", height=70, 
                            placeholder="Type your system prompt here...")
 
-provider = st.radio("Select Provider:", ("Groq", "DeepSeek", "GoogleAI"))  # Added GoogleAI
+provider = st.radio("Select Provider:", ("Groq", "DeepSeek", "GoogleAI"))
 
 model_options = {
     "Groq": ["llama3-70b-8192", "llama-3.3-70b-versatile"],
     "DeepSeek": ["deepseek/deepseek-r1-zero:free", "deepseek/deepseek-r1-distill-qwen-32b:free"],
-    "GoogleAI": ["gemini-2.0-pro-exp-02-05","gemini-1.5-flash"]  # Added GoogleAI models
+    "GoogleAI": ["gemini-2.0-pro-exp-02-05","gemini-1.5-flash"]
 }
 
 selected_model = st.selectbox("Select Model:", model_options[provider])
 allow_web_search = st.checkbox("Enable Web Search", value=True)
 user_query = st.text_area("Enter your query:", height=150, placeholder="Ask Anything!")
 
-
 API_URL = "https://recent-jourdan-ustec-17c8d79f.koyeb.app/chat"
+
 if st.button("Ask Agent!"):
     if user_query.strip():
         payload = {
@@ -34,12 +34,16 @@ if st.button("Ask Agent!"):
         }
 
         try:
-            response = requests.post(API_URL, json=payload)
+            response = requests.post(API_URL, json=payload, timeout=30)  # Timeout added here
             if response.status_code == 200:
                 result = response.json()
                 st.subheader("Agent Response")
-                st.write(result.get("response", "No response"))  # Use st.write instead of st.success
+                st.write(result.get("response", "No response"))
             else:
-                st.error(f"Error: {response.json().get('detail', 'Unknown error')}")
-        except Exception as e:
+                st.error(f"Error {response.status_code}: {response.text}")
+        except requests.exceptions.Timeout:
+            st.error("Request timed out after 30 seconds. Please try again.")
+        except requests.exceptions.RequestException as e:
             st.error(f"Connection error: {str(e)}")
+        except Exception as e:
+            st.error(f"Unexpected error: {str(e)}")
